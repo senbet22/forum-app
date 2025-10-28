@@ -54,3 +54,23 @@ npm install
 # Run development server
 npm run dev
 ```
+
+## Environment Variables
+
+For some tasks, you need to set up your environment variables.
+
+### Setup
+
+1. Create a `.env.local` file in the root directory of the project
+
+2. Add the following variables:
+
+```env
+NEXT_PUBLIC_API_URL=your_api_url_here
+```
+
+**Note:** The `.env.local` file is gitignored and will not be committed to the repository. Each team member needs to create their own `.env.local` file.
+
+### Getting API Credentials
+
+Contact Mustac (backend developer) to get the API URL.
