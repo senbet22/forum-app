@@ -47,17 +47,19 @@ We're using Designsystemet to challenge ourselves with a professional design sys
 
 ## Getting Started
 
-```bash
-# Install dependencies
-npm install
 
-# Run development server
+### Install dependencies
+```bash
+npm install
+```
+### Run development server
+```bash
 npm run dev
 ```
 
 ## Environment Variables
 
-For some tasks, you need to set up your environment variables.
+For API related tasks, you need to set up your environment variables.
 
 ### Setup
 
