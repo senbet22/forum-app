@@ -25,7 +25,6 @@ We're using Designsystemet to challenge ourselves with a professional design sys
 **Backend:**
 
 - [@Mustac](https://github.com/Mustac)
-- Mustac - API development and hosting via Swagger
 
 ## Tech Stack
 
