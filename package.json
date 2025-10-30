@@ -12,6 +12,8 @@
     "@digdir/designsystemet-css": "^1.7.1",
     "@digdir/designsystemet-react": "^1.7.1",
     "@digdir/designsystemet-theme": "^1.7.1",
+    "axios": "^1.13.1",
+    "jwt-decode": "^4.0.0",
     "next": "16.0.0",
     "react": "19.2.0",
     "react-dom": "19.2.0"
