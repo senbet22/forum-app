@@ -1,17 +1,34 @@
 import { API_URL } from "@/lib/apiConfig";
 
-// Core account routes
+/**
+ * Centralized API endpoint definitions.
+ * Each key represents a logical API group (account, token, image, test, etc.).
+ * Dynamic routes are represented as functions for type safety and flexibility.
+ */
 export const endpoints = {
   account: {
+    // GET
     all: `${API_URL}/account/all`,
+    byId: (id: string | number) => `${API_URL}/account/${id}`,
+    search: `${API_URL}/account/search`,
     me: `${API_URL}/account/me`,
-    usernameAvailable: (username: string) =>
-      `${API_URL}/account/username-available/${username}`,
-    emailAvailable: (email: string) =>
-      `${API_URL}/account/email-available/${email}`,
+    refreshToken: `${API_URL}/account/refresh-token`,
+
+    // POST
     register: `${API_URL}/account/register`,
-    activate: `${API_URL}/account/activate`,
     login: `${API_URL}/account/login`,
+    usernameAvailable: `${API_URL}/account/username-available`,
+    emailAvailable: `${API_URL}/account/email-available`,
+    activate: `${API_URL}/account/activate`,
+    passwordReset: `${API_URL}/account/password-reset`,
+    sendActivationCode: `${API_URL}/account/send-activation-code`,
+    sendPasswordResetCode: `${API_URL}/account/send-password-reset-code`,
+
+    // PUT
+    update: `${API_URL}/account/update`,
+
+    // DELETE
+    deleteById: (id: string | number) => `${API_URL}/account/delete/${id}`,
   },
 
   token: {
@@ -19,12 +36,24 @@ export const endpoints = {
     refresh: `${API_URL}/token/refresh`,
   },
 
+  image: {
+    // GET
+    getAllAvatars: `${API_URL}/image/avatar/all`,
+
+    // POST
+    uploadAvatar: `${API_URL}/image/upload/avatar`,
+
+    // DELETE
+    deleteAvatar: (id: string | number) => `${API_URL}/image/avatar/${id}`,
+  },
+
   test: {
-    getActivationCode: (email: string) =>
-      `${API_URL}/test/get-activation-code/${email}`,
-    getRecoveryCode: (email: string) =>
-      `${API_URL}/test/get-recovery-code/${email}`,
+    // GET
+    getLog: (logType: string, date: string) => `${API_URL}/test/logs/${logType}/${date}`,
+    getActivationCode: (email: string) => `${API_URL}/test/get-activation-code/${email}`,
+    getRecoveryCode: (email: string) => `${API_URL}/test/get-recovery-code/${email}`,
     getDeviceInfo: `${API_URL}/test/get-device-info`,
-    authorization: `${API_URL}/test/authorization`,
+    authorizationCheck: `${API_URL}/test/authorization-check`,
+    authorizationAdminCheck: `${API_URL}/test/authorization-admin-check`,
   },
 };
