@@ -11,7 +11,7 @@ import {
 } from "@digdir/designsystemet-react";
 import { useState, FormEvent } from "react";
 import { login, register } from "@/lib/auth";
-import RegistrationSuccessModal from "@/components/modal/RegistrationSuccessModal"; // Adjust path as needed
+import RegistrationDialogModal from "@/components/modal/RegistrationDialogModal";
 
 const Auth: React.FC = () => {
   const [state, setState] = useState<"Login" | "Sign Up">("Login");
@@ -27,9 +27,8 @@ const Auth: React.FC = () => {
   }>({});
 
   // Modal state
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [registrationEmail, setRegistrationEmail] = useState<string>("");
-  const [registrationMessage, setRegistrationMessage] = useState<string>("");
 
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
@@ -39,6 +38,7 @@ const Auth: React.FC = () => {
     setErrors({});
     setLoading(true);
 
+    // Client-side validation
     const newErrors: {
       email?: string;
       password?: string;
@@ -52,6 +52,7 @@ const Auth: React.FC = () => {
     if (!password.trim()) {
       newErrors.password = "Password is required.";
     }
+
     if (state === "Sign Up" && !username.trim()) {
       newErrors.username = "Username is required.";
     }
@@ -65,11 +66,10 @@ const Auth: React.FC = () => {
     try {
       if (state === "Sign Up") {
         // REGISTRATION LOGIC
-        const result = await register(username, email, password);
+        await register(username, email, password);
 
-        // Show success modal
+        // Show activation modal
         setRegistrationEmail(email);
-        setRegistrationMessage(result.message);
         setIsModalOpen(true);
 
         // Clear form
@@ -86,20 +86,56 @@ const Auth: React.FC = () => {
       if (axios.isAxiosError(err) && err.response) {
         console.log("Full error response:", err.response.data);
         const { status, data } = err.response;
+        const formErrors: {
+          email?: string;
+          password?: string;
+          username?: string;
+          general?: string;
+        } = {};
 
+        // Check for field-specific errors first
         if (data.messages?.fieldErrors) {
           const fieldErrors = data.messages.fieldErrors;
-          const formattedErrors: Record<string, string> = {};
 
+          // Map field errors to our error state (case-insensitive)
           Object.entries(fieldErrors).forEach(([key, message]) => {
             const fieldName = key.toLowerCase();
-            formattedErrors[fieldName] = message as string;
+            if (fieldName === "email") {
+              formErrors.email = message as string;
+            } else if (fieldName === "password") {
+              formErrors.password = message as string;
+            } else if (fieldName === "username") {
+              formErrors.username = message as string;
+            }
           });
+        }
 
-          setErrors(formattedErrors);
+        // Check for validation errors (arrays)
+        if (data.messages?.validationErrors) {
+          const validationErrors = data.messages.validationErrors;
+
+          Object.entries(validationErrors).forEach(([key, messages]) => {
+            const fieldName = key.toLowerCase();
+            const errorArray = messages as string[];
+
+            if (fieldName === "email" && !formErrors.email) {
+              formErrors.email = errorArray[0];
+            } else if (fieldName === "password" && !formErrors.password) {
+              formErrors.password = errorArray[0];
+            } else if (fieldName === "username" && !formErrors.username) {
+              formErrors.username = errorArray[0];
+            }
+          });
+        }
+
+        // If we have mapped field errors, use them
+        if (Object.keys(formErrors).length > 0) {
+          setErrors(formErrors);
         } else {
-          const message = data.messages?.response?.[0] || "An error occurred";
+          // Fall back to general message
+          const message = data.messages?.response || "An error occurred";
 
+          // Map status codes to fields if no specific field errors (mainly for login)
           if (state === "Login") {
             if (status === 404) {
               setErrors({ email: message });
@@ -131,7 +167,7 @@ const Auth: React.FC = () => {
 
   const handleModalClose = () => {
     setIsModalOpen(false);
-    // Optionally switch to login view after closing modal
+    // Switch to login view after closing modal
     setState("Login");
   };
 
@@ -139,7 +175,7 @@ const Auth: React.FC = () => {
     <>
       <form
         onSubmit={onSubmitHandler}
-        className="flex flex-col justify-center py-10 items-center"
+        className="flex flex-col justify-center py-10 items-center h-svh"
       >
         <Heading
           level={1}
@@ -245,11 +281,10 @@ const Auth: React.FC = () => {
         </div>
       </form>
 
-      <RegistrationSuccessModal
+      <RegistrationDialogModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
         email={registrationEmail}
-        message={registrationMessage}
       />
     </>
   );

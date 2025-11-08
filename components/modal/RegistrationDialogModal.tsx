@@ -8,14 +8,14 @@ import {
 } from "@digdir/designsystemet-react";
 import { useRef, useEffect } from "react";
 
-interface RegistrationSuccessModalProps {
+interface RegistrationDialogModalProps {
   isOpen: boolean;
   onClose: () => void;
   email: string;
   message?: string;
 }
 
-const RegistrationSuccessModal: React.FC<RegistrationSuccessModalProps> = ({
+const RegistrationDialogModal: React.FC<RegistrationDialogModalProps> = ({
   isOpen,
   onClose,
   email,
@@ -51,10 +51,10 @@ const RegistrationSuccessModal: React.FC<RegistrationSuccessModalProps> = ({
         </Alert>
         <Textfield type="text" error="" label="Enter Activation Code" />
 
-        <Button onClick={handleClose}>Got it</Button>
+        <Button onClick={handleClose}>Activate Account</Button>
       </div>
     </Dialog>
   );
 };
 
-export default RegistrationSuccessModal;
+export default RegistrationDialogModal;

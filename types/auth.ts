@@ -21,11 +21,13 @@ export interface Login {
 export type LoginResponse = APIResponse<Login>;
 
 // Registration Data
-export interface RegisterData {
+export interface Register {
   username: string;
   email: string;
   password: string;
 }
 
+export type RegisterResponse = APIResponse<Register>;
+
 // The response after registration (before activation)
-export type RegisterResponse = APIResponse<{ email: string } | null>;
+// export type RegisterResponse = APIResponse<{ email: string } | null>;
