@@ -10,19 +10,26 @@ import {
   ErrorSummary,
 } from "@digdir/designsystemet-react";
 import { useState, FormEvent } from "react";
-import { login } from "@/lib/auth";
+import { login, register } from "@/lib/auth";
+import RegistrationSuccessModal from "@/components/modal/RegistrationSuccessModal"; // Adjust path as needed
 
 const Auth: React.FC = () => {
   const [state, setState] = useState<"Login" | "Sign Up">("Login");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [name, setName] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
 
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
+    username?: string;
     general?: string;
   }>({});
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
+  const [registrationEmail, setRegistrationEmail] = useState<string>("");
+  const [registrationMessage, setRegistrationMessage] = useState<string>("");
 
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
@@ -32,11 +39,10 @@ const Auth: React.FC = () => {
     setErrors({});
     setLoading(true);
 
-    // Client-side validation
     const newErrors: {
       email?: string;
       password?: string;
-      general?: string;
+      username?: string;
     } = {};
 
     if (!email.trim()) {
@@ -45,6 +51,9 @@ const Auth: React.FC = () => {
 
     if (!password.trim()) {
       newErrors.password = "Password is required.";
+    }
+    if (state === "Sign Up" && !username.trim()) {
+      newErrors.username = "Username is required.";
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -55,11 +64,18 @@ const Auth: React.FC = () => {
 
     try {
       if (state === "Sign Up") {
-        // TODO: implement sign up later
-        console.log("Sign Up:", { name, email, password });
-        setLoading(false);
-        setErrors({ general: "Sign up is not yet implemented." });
-        return;
+        // REGISTRATION LOGIC
+        const result = await register(username, email, password);
+
+        // Show success modal
+        setRegistrationEmail(email);
+        setRegistrationMessage(result.message);
+        setIsModalOpen(true);
+
+        // Clear form
+        setUsername("");
+        setEmail("");
+        setPassword("");
       } else {
         // LOGIN LOGIC
         const user = await login(email, password);
@@ -67,60 +83,33 @@ const Auth: React.FC = () => {
         router.push("/");
       }
     } catch (err: unknown) {
-      setLoading(false);
-
       if (axios.isAxiosError(err) && err.response) {
+        console.log("Full error response:", err.response.data);
         const { status, data } = err.response;
-        const newErrors: {
-          email?: string;
-          password?: string;
-          general?: string;
-        } = {};
 
-        // Check for field-specific errors first
         if (data.messages?.fieldErrors) {
           const fieldErrors = data.messages.fieldErrors;
+          const formattedErrors: Record<string, string> = {};
 
-          // Map field errors to our error state
-          if (fieldErrors.email || fieldErrors.Email) {
-            newErrors.email = fieldErrors.email || fieldErrors.Email;
-          }
-          if (fieldErrors.password || fieldErrors.Password) {
-            newErrors.password = fieldErrors.password || fieldErrors.Password;
-          }
-        }
+          Object.entries(fieldErrors).forEach(([key, message]) => {
+            const fieldName = key.toLowerCase();
+            formattedErrors[fieldName] = message as string;
+          });
 
-        // Check for validation errors
-        if (data.messages?.validationErrors) {
-          const validationErrors = data.messages.validationErrors;
-
-          // Map validation errors (arrays) to our error state
-          if (validationErrors.email || validationErrors.Email) {
-            const emailErrors =
-              validationErrors.email || validationErrors.Email;
-            newErrors.email = emailErrors[0]; // Take first error
-          }
-          if (validationErrors.password || validationErrors.Password) {
-            const passwordErrors =
-              validationErrors.password || validationErrors.Password;
-            newErrors.password = passwordErrors[0]; // Take first error
-          }
-        }
-
-        // If we have mapped field errors, use them
-        if (Object.keys(newErrors).length > 0) {
-          setErrors(newErrors);
+          setErrors(formattedErrors);
         } else {
-          // Fall back to general message
-          const message = data.messages?.response || "An error occurred";
+          const message = data.messages?.response?.[0] || "An error occurred";
 
-          // Map status codes to fields if no specific field errors
-          if (status === 404) {
-            setErrors({ email: message });
-          } else if (status === 400) {
-            setErrors({ password: message });
-          } else if (status === 401) {
-            setErrors({ general: message });
+          if (state === "Login") {
+            if (status === 404) {
+              setErrors({ email: message });
+            } else if (status === 400) {
+              setErrors({ password: message });
+            } else if (status === 401) {
+              setErrors({ general: message });
+            } else {
+              setErrors({ general: message });
+            }
           } else {
             setErrors({ general: message });
           }
@@ -128,107 +117,141 @@ const Auth: React.FC = () => {
       } else if (err instanceof Error) {
         setErrors({ general: err.message });
       } else {
-        setErrors({ general: "Login failed. Please try again." });
+        setErrors({
+          general:
+            state === "Sign Up"
+              ? "Registration failed. Please try again."
+              : "Login failed. Please try again.",
+        });
       }
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    // Optionally switch to login view after closing modal
+    setState("Login");
+  };
+
   return (
-    <form
-      onSubmit={onSubmitHandler}
-      className="flex flex-col justify-center py-10 items-center h-svh"
-    >
-      <Heading
-        level={1}
-        data-size="lg"
-        style={{ marginBottom: "var(--ds-size-5)" }}
+    <>
+      <form
+        onSubmit={onSubmitHandler}
+        className="flex flex-col justify-center py-10 items-center"
       >
-        {state === "Sign Up" ? "Create Account" : "Login"}
-      </Heading>
+        <Heading
+          level={1}
+          data-size="lg"
+          style={{ marginBottom: "var(--ds-size-5)" }}
+        >
+          {state === "Sign Up" ? "Create Account" : "Login"}
+        </Heading>
 
-      <div className="flex flex-col gap-3 p-8">
-        {state === "Sign Up" && (
+        <div className="flex flex-col gap-3 p-8">
+          {state === "Sign Up" && (
+            <Textfield
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              label="Username"
+              type="text"
+              id="username"
+              error={errors.username}
+            />
+          )}
+
           <Textfield
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            label="Username"
-            type="text"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            type="email"
+            label="Email"
+            id="email"
+            error={errors.email}
           />
-        )}
 
-        <Textfield
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          type="email"
-          label="Email"
-          id="email"
-          error={errors.email}
-        />
+          <Textfield
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            type="password"
+            label="Password"
+            id="password"
+            error={errors.password}
+          />
 
-        <Textfield
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          type="password"
-          label="Password"
-          id="password"
-          error={errors.password}
-        />
+          <Button type="submit" className="cursor-pointer" disabled={loading}>
+            {loading
+              ? "Loading..."
+              : state === "Sign Up"
+                ? "Create Account"
+                : "Login"}
+          </Button>
 
-        <Button type="submit" className="cursor-pointer" disabled={loading}>
-          {loading
-            ? "Loading..."
-            : state === "Sign Up"
-              ? "Create Account"
-              : "Login"}
-        </Button>
+          {(errors.email ||
+            errors.password ||
+            errors.username ||
+            errors.general) && (
+            <ErrorSummary>
+              <ErrorSummary.Heading>
+                To continue, you must correct the following errors:
+              </ErrorSummary.Heading>
+              <ErrorSummary.List>
+                {errors.username && (
+                  <ErrorSummary.Item>
+                    <ErrorSummary.Link href="#username">
+                      {errors.username}
+                    </ErrorSummary.Link>
+                  </ErrorSummary.Item>
+                )}
+                {errors.email && (
+                  <ErrorSummary.Item>
+                    <ErrorSummary.Link href="#email">
+                      {errors.email}
+                    </ErrorSummary.Link>
+                  </ErrorSummary.Item>
+                )}
+                {errors.password && (
+                  <ErrorSummary.Item>
+                    <ErrorSummary.Link href="#password">
+                      {errors.password}
+                    </ErrorSummary.Link>
+                  </ErrorSummary.Item>
+                )}
+                {errors.general && (
+                  <ErrorSummary.Item>{errors.general}</ErrorSummary.Item>
+                )}
+              </ErrorSummary.List>
+            </ErrorSummary>
+          )}
 
-        {(errors.email || errors.password || errors.general) && (
-          <ErrorSummary>
-            <ErrorSummary.Heading>
-              To continue, you must correct the following errors:
-            </ErrorSummary.Heading>
-            <ErrorSummary.List>
-              {errors.email && (
-                <ErrorSummary.Item>
-                  <ErrorSummary.Link href="#email">
-                    {errors.email}
-                  </ErrorSummary.Link>
-                </ErrorSummary.Item>
-              )}
-              {errors.password && (
-                <ErrorSummary.Item>
-                  <ErrorSummary.Link href="#password">
-                    {errors.password}
-                  </ErrorSummary.Link>
-                </ErrorSummary.Item>
-              )}
-              {errors.general && (
-                <ErrorSummary.Item>{errors.general}</ErrorSummary.Item>
-              )}
-            </ErrorSummary.List>
-          </ErrorSummary>
-        )}
+          {state === "Login" && (
+            <Link className="cursor-pointer">Forgot Password?</Link>
+          )}
 
-        {state === "Login" && (
-          <Link className="cursor-pointer">Forgot Password?</Link>
-        )}
+          <Paragraph>
+            {state === "Sign Up"
+              ? "Already have an Account? "
+              : "Create a new account? "}
+            <Link
+              className="cursor-pointer"
+              onClick={() => {
+                setState(state === "Sign Up" ? "Login" : "Sign Up");
+                setErrors({});
+              }}
+            >
+              {state === "Sign Up" ? "Login Here" : "Click here"}
+            </Link>
+          </Paragraph>
+        </div>
+      </form>
 
-        <Paragraph>
-          {state === "Sign Up"
-            ? "Already have an Account? "
-            : "Create a new account? "}
-          <Link
-            className="cursor-pointer"
-            onClick={() => {
-              setState(state === "Sign Up" ? "Login" : "Sign Up");
-              setErrors({});
-            }}
-          >
-            {state === "Sign Up" ? "Login Here" : "Click here"}
-          </Link>
-        </Paragraph>
-      </div>
-    </form>
+      <RegistrationSuccessModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        email={registrationEmail}
+        message={registrationMessage}
+      />
+    </>
   );
 };
 

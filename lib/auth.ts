@@ -1,6 +1,8 @@
 // lib/auth.ts
 import { jwtDecode } from "jwt-decode";
 import axiosInstance from "./axios";
+import { LoginResponse, RegisterResponse, User } from "@/types/auth";
+import { endpoints } from "./endpoints";
 import { LoginResponse, User } from "@/types/auth";
 import { endpoints } from "./endpoints";
 
@@ -26,6 +28,13 @@ export function decodeToken(token: string): User | null {
 }
 
 export async function login(email: string, password: string) {
+  const response = await axiosInstance.post<LoginResponse>(
+    endpoints.account.login,
+    {
+      email,
+      password,
+    }
+  );
   const response = await axiosInstance.post<LoginResponse>(
     endpoints.account.login,
     {

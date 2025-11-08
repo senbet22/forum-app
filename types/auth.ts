@@ -1,16 +1,7 @@
 export interface APIResponse<T> {
   httpStatusCode: number;
   success: boolean;
-  messages: {
-    code: string;
-    response: string;
-    validationErrors?: {
-      [key: string]: string[];
-    };
-    fieldErrors?: {
-      [key: string]: string;
-    };
-  };
+  responseMessages: string[];
   data: T;
 }
 
@@ -28,3 +19,13 @@ export interface Login {
 }
 
 export type LoginResponse = APIResponse<Login>;
+
+// Registration Data
+export interface RegisterData {
+  username: string;
+  email: string;
+  password: string;
+}
+
+// The response after registration (before activation)
+export type RegisterResponse = APIResponse<{ email: string } | null>;
