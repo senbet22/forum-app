@@ -1,7 +1,16 @@
 export interface APIResponse<T> {
   httpStatusCode: number;
   success: boolean;
-  responseMessages: string[];
+  messages: {
+    code: string;
+    response: string;
+    validationErrors?: {
+      [key: string]: string[];
+    };
+    fieldErrors?: {
+      [key: string]: string;
+    };
+  };
   data: T;
 }
 
@@ -27,7 +36,5 @@ export interface Register {
   password: string;
 }
 
-export type RegisterResponse = APIResponse<Register>;
-
 // The response after registration (before activation)
-// export type RegisterResponse = APIResponse<{ email: string } | null>;
+export type RegisterResponse = APIResponse<Register>;
