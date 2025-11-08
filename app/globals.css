@@ -2,46 +2,6 @@
 @import "@digdir/designsystemet-css";
 @import "@digdir/designsystemet-theme";
 
-:root[data-theme="light"] {
-  --background: oklch(92.8% 0.006 264.531);
-  --foreground: oklch(98.5% 0.002 247.839);
-  --base-color: #000;
-  --base-text-color: #000;
-  --ds-color-accent-text-subtle: #0076d6;
-  --ds-color-accent-text-default: #0059be;
-  --ds-color-accent-surface-default: var(--foreground);
-}
-
-:root[data-theme="dark"] {
-  --background: oklch(29.964% 0.01618 259.825);
-  --foreground: oklch(38.506% 0.01518 259.854);
-  --base-color: oklch(55.1% 0.027 264.364);
-  --base-text-color: #fff;
-  --ds-color-accent-text-subtle: #16b9ff;
-  --ds-color-accent-text-default: #089ede;
-  --ds-color-accent-surface-default: var(--foreground);
-  --ds-color-accent-surface-hover: oklch(45.509% 0.01806 260.736);
-  --ds-color-accent-surface-active: #0369c2;
-}
-
-/* Tailwind Custom Classes */
-@theme inline {
-  --color-theme-background: var(--background);
-  --color-theme-foreground: var(--foreground);
-  --color-base-color: var(--base-color);
-  --color-base-mode: var(--base-text-color);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --color-custom-color: var(--base-color);
-}
-
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-} */
-
 body {
   /* background: var(--background); */
   /* color: var(--foreground); */

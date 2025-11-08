@@ -18,7 +18,6 @@ const Auth: React.FC = () => {
   const [password, setPassword] = useState<string>("");
   const [name, setName] = useState<string>("");
 
-  // Change from single error to field-specific errors
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
@@ -30,7 +29,7 @@ const Auth: React.FC = () => {
 
   const onSubmitHandler = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setErrors({}); // Clear all previous errors upon submission
+    setErrors({});
     setLoading(true);
 
     // Client-side validation
@@ -48,45 +47,83 @@ const Auth: React.FC = () => {
       newErrors.password = "Password is required.";
     }
 
-    // If there are validation errors, don't submit
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       setLoading(false);
       return;
     }
-    setLoading(true);
 
     try {
       if (state === "Sign Up") {
         // TODO: implement sign up later
         console.log("Sign Up:", { name, email, password });
+        setLoading(false);
+        setErrors({ general: "Sign up is not yet implemented." });
+        return;
       } else {
         // LOGIN LOGIC
         const user = await login(email, password);
         console.log("Logged in as:", user);
-        router.push("/"); // Redirect after successful login
+        router.push("/");
       }
     } catch (err: unknown) {
       setLoading(false);
 
-      // Check if it's an axios error with response
       if (axios.isAxiosError(err) && err.response) {
         const { status, data } = err.response;
-        const message = data.responseMessages?.[0] || "An error occurred";
+        const newErrors: {
+          email?: string;
+          password?: string;
+          general?: string;
+        } = {};
 
-        // Map status codes to fields
-        if (status === 404) {
-          // User not found - email issue
-          setErrors({ email: message });
-        } else if (status === 400) {
-          // Bad request - password issue
-          setErrors({ password: message });
-        } else if (status === 401) {
-          // Unauthorized - could be either, show as general
-          setErrors({ general: message });
+        // Check for field-specific errors first
+        if (data.messages?.fieldErrors) {
+          const fieldErrors = data.messages.fieldErrors;
+
+          // Map field errors to our error state
+          if (fieldErrors.email || fieldErrors.Email) {
+            newErrors.email = fieldErrors.email || fieldErrors.Email;
+          }
+          if (fieldErrors.password || fieldErrors.Password) {
+            newErrors.password = fieldErrors.password || fieldErrors.Password;
+          }
+        }
+
+        // Check for validation errors
+        if (data.messages?.validationErrors) {
+          const validationErrors = data.messages.validationErrors;
+
+          // Map validation errors (arrays) to our error state
+          if (validationErrors.email || validationErrors.Email) {
+            const emailErrors =
+              validationErrors.email || validationErrors.Email;
+            newErrors.email = emailErrors[0]; // Take first error
+          }
+          if (validationErrors.password || validationErrors.Password) {
+            const passwordErrors =
+              validationErrors.password || validationErrors.Password;
+            newErrors.password = passwordErrors[0]; // Take first error
+          }
+        }
+
+        // If we have mapped field errors, use them
+        if (Object.keys(newErrors).length > 0) {
+          setErrors(newErrors);
         } else {
-          // Other errors
-          setErrors({ general: message });
+          // Fall back to general message
+          const message = data.messages?.response || "An error occurred";
+
+          // Map status codes to fields if no specific field errors
+          if (status === 404) {
+            setErrors({ email: message });
+          } else if (status === 400) {
+            setErrors({ password: message });
+          } else if (status === 401) {
+            setErrors({ general: message });
+          } else {
+            setErrors({ general: message });
+          }
         }
       } else if (err instanceof Error) {
         setErrors({ general: err.message });
@@ -141,9 +178,10 @@ const Auth: React.FC = () => {
           {loading
             ? "Loading..."
             : state === "Sign Up"
-            ? "Create Account"
-            : "Login"}
+              ? "Create Account"
+              : "Login"}
         </Button>
+
         {(errors.email || errors.password || errors.general) && (
           <ErrorSummary>
             <ErrorSummary.Heading>

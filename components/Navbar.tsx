@@ -1,6 +1,5 @@
 "use client";
 import { Button, Link } from "@digdir/designsystemet-react";
-import ThemeSwitch from "./ThemeSwitch";
 
 const Navbar = () => {
   return (
@@ -19,8 +18,6 @@ const Navbar = () => {
             <span className="text-white">Login</span>
           </Link>
         </Button>
-
-        <ThemeSwitch />
       </nav>
     </header>
   );

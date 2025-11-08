@@ -54,9 +54,12 @@ export const endpoints = {
 
   test: {
     // GET
-    getLog: (logType: string, date: string) => `${API_URL}/api/test/logs/${logType}/${date}`,
-    getActivationCode: (email: string) => `${API_URL}/api/test/get-activation-code/${email}`,
-    getRecoveryCode: (email: string) => `${API_URL}/api/test/get-recovery-code/${email}`,
+    getLog: (logType: string, date: string) =>
+      `${API_URL}/api/test/logs/${logType}/${date}`,
+    getActivationCode: (email: string) =>
+      `${API_URL}/api/test/get-activation-code/${email}`,
+    getRecoveryCode: (email: string) =>
+      `${API_URL}/api/test/get-recovery-code/${email}`,
     getDeviceInfo: `${API_URL}/api/test/get-device-info`,
     authorizationCheck: `${API_URL}/api/test/authorization-check`,
     authorizationAdminCheck: `${API_URL}/api/test/authorization-admin-check`,

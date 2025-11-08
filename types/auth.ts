@@ -1,7 +1,16 @@
 export interface APIResponse<T> {
   httpStatusCode: number;
   success: boolean;
-  responseMessages: string[];
+  messages: {
+    code: string;
+    response: string;
+    validationErrors?: {
+      [key: string]: string[];
+    };
+    fieldErrors?: {
+      [key: string]: string;
+    };
+  };
   data: T;
 }
 

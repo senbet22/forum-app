@@ -2,6 +2,7 @@
 import { jwtDecode } from "jwt-decode";
 import axiosInstance from "./axios";
 import { LoginResponse, User } from "@/types/auth";
+import { endpoints } from "./endpoints";
 
 interface JWTPayload {
   "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier": string;
@@ -25,10 +26,13 @@ export function decodeToken(token: string): User | null {
 }
 
 export async function login(email: string, password: string) {
-  const response = await axiosInstance.post<LoginResponse>("/account/login", {
-    email,
-    password,
-  });
+  const response = await axiosInstance.post<LoginResponse>(
+    endpoints.account.login,
+    {
+      email,
+      password,
+    }
+  );
 
   const token = response.data.data.token;
   localStorage.setItem("token", token);
