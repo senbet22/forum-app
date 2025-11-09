@@ -36,6 +36,16 @@ export const endpoints = {
     deleteById: (id: string | number) => `${API_URL}/api/account/delete/${id}`,
   },
 
+  topic: {
+    delete: (id: number) => `${API_URL}/api/topic/${id}`,
+    getTree: `${API_URL}/api/topic/tree`,
+    getById: (id: number) => `${API_URL}/api/topic/${id}`,
+    isWritable: (id: number) => `${API_URL}/api/topic/is-writable/${id}`,
+    migratePosts: `${API_URL}/api/topic/migrate-posts`,
+    create: `${API_URL}/api/topic`,
+    update: (id: number) => `${API_URL}/api/topic/${id}`,
+  },
+
   token: {
     sendActivation: `${API_URL}/api/token/send-activation`,
     refresh: `${API_URL}/api/token/refresh`,
@@ -54,12 +64,9 @@ export const endpoints = {
 
   test: {
     // GET
-    getLog: (logType: string, date: string) =>
-      `${API_URL}/api/test/logs/${logType}/${date}`,
-    getActivationCode: (email: string) =>
-      `${API_URL}/api/test/get-activation-code/${email}`,
-    getRecoveryCode: (email: string) =>
-      `${API_URL}/api/test/get-recovery-code/${email}`,
+    getLog: (logType: string, date: string) => `${API_URL}/api/test/logs/${logType}/${date}`,
+    getActivationCode: (email: string) => `${API_URL}/api/test/get-activation-code/${email}`,
+    getRecoveryCode: (email: string) => `${API_URL}/api/test/get-recovery-code/${email}`,
     getDeviceInfo: `${API_URL}/api/test/get-device-info`,
     authorizationCheck: `${API_URL}/api/test/authorization-check`,
     authorizationAdminCheck: `${API_URL}/api/test/authorization-admin-check`,
