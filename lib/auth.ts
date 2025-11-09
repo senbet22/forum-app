@@ -62,14 +62,3 @@ export async function register(
     email: email,
   };
 }
-
-// Logout
-export function logout() {
-  localStorage.removeItem("token");
-}
-
-// Get user function
-export function getUser(): User | null {
-  const token = localStorage.getItem("token");
-  return token ? decodeToken(token) : null;
-}

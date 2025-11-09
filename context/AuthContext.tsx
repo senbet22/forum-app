@@ -2,18 +2,8 @@
 "use client";
 import { createContext, useContext, useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { jwtDecode } from "jwt-decode";
-
-interface JWTPayload {
-  "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier": string;
-  "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name": string;
-  exp: number;
-}
-
-interface User {
-  id: string;
-  email: string;
-}
+import { decodeToken } from "@/lib/auth";
+import { User } from "@/types/auth";
 
 interface AuthContextType {
   user: User | null;
@@ -32,21 +22,6 @@ export const useAuth = () => {
   }
   return context;
 };
-
-function decodeToken(token: string): User | null {
-  try {
-    const decoded = jwtDecode<JWTPayload>(token);
-    return {
-      id: decoded[
-        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
-      ],
-      email:
-        decoded["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"],
-    };
-  } catch {
-    return null;
-  }
-}
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
