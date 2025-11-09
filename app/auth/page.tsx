@@ -10,7 +10,8 @@ import {
   ErrorSummary,
 } from "@digdir/designsystemet-react";
 import { useState, FormEvent } from "react";
-import { login, register } from "@/lib/auth";
+import { login as apiLogin, register } from "@/lib/auth";
+import { useAuth } from "@/context/AuthContext";
 import RegistrationDialogModal from "@/components/modal/RegistrationDialogModal";
 
 const Auth: React.FC = () => {
@@ -26,19 +27,18 @@ const Auth: React.FC = () => {
     general?: string;
   }>({});
 
-  // Modal state
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [registrationEmail, setRegistrationEmail] = useState<string>("");
-
   const [loading, setLoading] = useState<boolean>(false);
+
   const router = useRouter();
+  const { login } = useAuth(); // Add this
 
   const onSubmitHandler = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrors({});
     setLoading(true);
 
-    // Client-side validation
     const newErrors: {
       email?: string;
       password?: string;
@@ -65,26 +65,26 @@ const Auth: React.FC = () => {
 
     try {
       if (state === "Sign Up") {
-        // REGISTRATION LOGIC
         await register(username, email, password);
-
-        // Show activation modal
         setRegistrationEmail(email);
         setIsModalOpen(true);
-
-        // Clear form
         setUsername("");
         setEmail("");
         setPassword("");
       } else {
         // LOGIN LOGIC
-        const user = await login(email, password);
-        console.log("Logged in as:", user);
+        await apiLogin(email, password);
+
+        // Get token and update context
+        const token = localStorage.getItem("token");
+        if (token) {
+          login(token); // Update AuthContext state
+        }
+
         router.push("/");
       }
     } catch (err: unknown) {
       if (axios.isAxiosError(err) && err.response) {
-        console.log("Full error response:", err.response.data);
         const { status, data } = err.response;
         const formErrors: {
           email?: string;
@@ -93,11 +93,8 @@ const Auth: React.FC = () => {
           general?: string;
         } = {};
 
-        // Check for field-specific errors first
         if (data.messages?.fieldErrors) {
           const fieldErrors = data.messages.fieldErrors;
-
-          // Map field errors to our error state (case-insensitive)
           Object.entries(fieldErrors).forEach(([key, message]) => {
             const fieldName = key.toLowerCase();
             if (fieldName === "email") {
@@ -110,14 +107,11 @@ const Auth: React.FC = () => {
           });
         }
 
-        // Check for validation errors (arrays)
         if (data.messages?.validationErrors) {
           const validationErrors = data.messages.validationErrors;
-
           Object.entries(validationErrors).forEach(([key, messages]) => {
             const fieldName = key.toLowerCase();
             const errorArray = messages as string[];
-
             if (fieldName === "email" && !formErrors.email) {
               formErrors.email = errorArray[0];
             } else if (fieldName === "password" && !formErrors.password) {
@@ -128,14 +122,10 @@ const Auth: React.FC = () => {
           });
         }
 
-        // If we have mapped field errors, use them
         if (Object.keys(formErrors).length > 0) {
           setErrors(formErrors);
         } else {
-          // Fall back to general message
           const message = data.messages?.response || "An error occurred";
-
-          // Map status codes to fields if no specific field errors (mainly for login)
           if (state === "Login") {
             if (status === 404) {
               setErrors({ email: message });
@@ -167,7 +157,6 @@ const Auth: React.FC = () => {
 
   const handleModalClose = () => {
     setIsModalOpen(false);
-    // Switch to login view after closing modal
     setState("Login");
   };
 
