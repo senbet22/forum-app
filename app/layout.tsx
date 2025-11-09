@@ -28,14 +28,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
           <header>
             <Navbar />
           </header>
-          <main>{children}</main>
+          <main className="w-full max-w-5xl mx-auto">{children}</main>
           <Footer />
         </AuthProvider>
       </body>

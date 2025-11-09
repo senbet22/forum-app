@@ -59,9 +59,24 @@ export default function HomePage() {
       <Heading level={1} data-size="xl">
         Felles forum
       </Heading>
-      <section className="mt-8">
-        {topics.length > 0 ? <TopicTree topics={topics} /> : <p>Ingen kategorier tilgjengelig.</p>}
-      </section>
+      <div className="grid grid-cols-4 gap-6">
+        <aside className="bg-gray-500 rounded-lg h-[50vh] sticky top-10">
+          {topics.length > 0 ? <TopicTree topics={topics} /> : <p>Ingen kategorier tilgjengelig.</p>}
+        </aside>
+
+        <section className="col-span-3">
+          <Heading level={2} data-size="md">
+            Feed:
+          </Heading>
+          <div className="space-y-6">
+            {Array.from({ length: 20 }).map((_, index) => (
+              <Skeleton width="100%" height={120} key={index}>
+                Element {index + 1}
+              </Skeleton>
+            ))}
+          </div>
+        </section>
+      </div>
     </>
   );
 }
