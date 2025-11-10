@@ -25,7 +25,9 @@ export interface TopicNode {
 export type TopicTreeResponse = APIResponse<TopicNode[]>;
 
 export async function getTopicTree() {
-  const response = await axiosInstance.get<TopicTreeResponse>(endpoints.topic.getTree);
+  const response = await axiosInstance.get<TopicTreeResponse>(
+    endpoints.topic.getTree
+  );
   return response.data;
 }
 
@@ -41,7 +43,9 @@ export interface Topic {
 export type TopicResponse = APIResponse<Topic>;
 
 export async function getTopicById(id: number) {
-  const response = await axiosInstance.get<TopicResponse>(endpoints.topic.getById(id));
+  const response = await axiosInstance.get<TopicResponse>(
+    endpoints.topic.getById(id)
+  );
   return response.data;
 }
 
@@ -53,7 +57,9 @@ export interface TopicWritability {
 export type TopicWritabilityResponse = APIResponse<TopicWritability>;
 
 export async function isTopicWritable(id: number) {
-  const response = await axiosInstance.get<TopicWritabilityResponse>(endpoints.topic.isWritable(id));
+  const response = await axiosInstance.get<TopicWritabilityResponse>(
+    endpoints.topic.isWritable(id)
+  );
   return response.data;
 }
 
@@ -77,7 +83,10 @@ export type MigratePostsResponse = APIResponse<MigratePostsData>;
 
 // Funksjon som migrerer innlegg fra en topic til en annen
 export async function migratePosts(payload: MigratePostsPayload) {
-  const response = await axiosInstance.post<MigratePostsResponse>(endpoints.topic.migratePosts, payload);
+  const response = await axiosInstance.post<MigratePostsResponse>(
+    endpoints.topic.migratePosts,
+    payload
+  );
   return response.data;
 }
 
@@ -99,7 +108,10 @@ export type CreateTopicResponse = APIResponse<CreatedTopic>;
 
 // Funksjon som oppretter en ny topic
 export async function createTopic(payload: CreateTopicPayload) {
-  const response = await axiosInstance.post<CreateTopicResponse>(endpoints.topic.create, payload);
+  const response = await axiosInstance.post<CreateTopicResponse>(
+    endpoints.topic.create,
+    payload
+  );
   return response.data;
 }
 
@@ -113,6 +125,9 @@ export interface UpdateTopicPayload {
 export type UpdateTopicResponse = APIResponse<unknown[]>;
 
 export async function updateTopic(id: number, payload: UpdateTopicPayload) {
-  const response = await axiosInstance.put<UpdateTopicResponse>(endpoints.topic.update(id), payload);
+  const response = await axiosInstance.put<UpdateTopicResponse>(
+    endpoints.topic.update(id),
+    payload
+  );
   return response.data;
 }

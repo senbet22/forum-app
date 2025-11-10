@@ -2,10 +2,10 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { Button, Dropdown, Avatar } from "@digdir/designsystemet-react";
+import { Button, Dropdown, Avatar, Switch } from "@digdir/designsystemet-react";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
-import { LogOut, ChevronDown, ChevronUp, Sun, Moon } from "lucide-react";
+import { LogOut, ChevronDown, ChevronUp } from "lucide-react";
 import { assets } from "@/app/assets/assets";
 import Image from "next/image";
 
@@ -22,8 +22,14 @@ const Navbar = () => {
   };
 
   return (
-    <header>
-      <nav className="flex justify-between px-8 items-center h-20 max-w-6xl mx-auto">
+    <header
+      className="fixed top-0 left-0 right-0 z-50 "
+      style={{
+        backgroundColor: "var(--ds-color-surface-default)",
+        borderColor: "var(--ds-color-border-subtle)",
+      }}
+    >
+      <nav className="flex justify-between px-8 items-center h-16 max-w-6xl mx-auto w-full">
         <div className="flex gap-6">
           <Link data-color="neutral" href="/">
             <Image
@@ -38,7 +44,7 @@ const Navbar = () => {
           {!isAuthenticated() ? (
             <Button asChild>
               <Link href="/auth">
-                <span className="text-white">Login</span>
+                <span>Login</span>
               </Link>
             </Button>
           ) : (
@@ -53,9 +59,9 @@ const Navbar = () => {
                 </Avatar>
                 <span className="font-semibold">Profile</span>
                 {isDropdownOpen ? (
-                  <ChevronUp height={35} width={35} />
+                  <ChevronUp height={24} width={24} />
                 ) : (
-                  <ChevronDown height={35} width={35} />
+                  <ChevronDown height={24} width={24} />
                 )}
               </Dropdown.Trigger>
               <Dropdown
@@ -75,6 +81,18 @@ const Navbar = () => {
                     </Dropdown.Button>
                   </Dropdown.Item>
                   <Dropdown.Item>
+                    <Dropdown.Button>
+                      {/* Theme Toggle Button */}
+                      <Switch
+                        description=""
+                        label="Dark mode"
+                        position="start"
+                        onClick={toggleTheme}
+                      />
+                    </Dropdown.Button>
+                  </Dropdown.Item>
+
+                  <Dropdown.Item>
                     <Dropdown.Button onClick={logout}>
                       <LogOut /> Logout
                     </Dropdown.Button>
@@ -83,14 +101,6 @@ const Navbar = () => {
               </Dropdown>
             </Dropdown.TriggerContext>
           )}
-          {/* Theme Toggle Button */}
-          <Button
-            variant="tertiary"
-            onClick={toggleTheme}
-            aria-label="Toggle theme"
-          >
-            {theme === "dark" ? <Sun size={30} /> : <Moon size={30} />}
-          </Button>
         </div>
       </nav>
     </header>
