@@ -29,7 +29,7 @@ const Navbar = () => {
         borderColor: "var(--ds-color-border-subtle)",
       }}
     >
-      <nav className="flex justify-between px-8 items-center h-16 max-w-6xl mx-auto w-full">
+      <nav className="flex justify-between px-8 items-center h-20 max-w-6xl mx-auto w-full">
         <div className="flex gap-6">
           <Link data-color="neutral" href="/">
             <Image
