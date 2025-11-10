@@ -2,8 +2,25 @@
 @import "@digdir/designsystemet-css";
 @import "@digdir/designsystemet-theme";
 
+:root {
+  --custom-primary: #101a21;
+  --custom-accent: #afc0cd;
+  --custom-neutral: #1e2b3c;
+  --custom-brand: #f45f63;
+}
+
+[data-color-scheme="light"] {
+  --ds-color-accent-background-default: var(--custom-primary);
+  --ds-color-accent-background-subtle: #e6f2ff;
+  --ds-color-accent-surface-default: var(--custom-accent);
+}
+
+[data-color-scheme="dark"] {
+  --ds-color-accent-background-default: var(--custom-accent);
+  --ds-color-accent-background-subtle: #1a3a52;
+  --ds-color-accent-surface-default: var(--custom-primary);
+}
+
 body {
-  /* background: var(--background); */
-  /* color: var(--foreground); */
   font-family: Arial, Helvetica, sans-serif;
 }

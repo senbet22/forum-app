@@ -164,7 +164,7 @@ const Auth: React.FC = () => {
     <>
       <form
         onSubmit={onSubmitHandler}
-        className="flex flex-col justify-center py-10 items-center h-svh"
+        className="flex flex-col justify-center py-20 items-center"
       >
         <Heading
           level={1}
