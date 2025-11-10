@@ -61,7 +61,11 @@ export default function HomePage() {
       </Heading>
       <div className="grid grid-cols-4 gap-6">
         <aside className="bg-gray-500 rounded-lg h-[50vh] sticky top-10">
-          {topics.length > 0 ? <TopicTree topics={topics} /> : <p>Ingen kategorier tilgjengelig.</p>}
+          {topics.length > 0 ? (
+            <TopicTree topics={topics} />
+          ) : (
+            <p>Ingen kategorier tilgjengelig.</p>
+          )}
         </aside>
 
         <section className="col-span-3">
