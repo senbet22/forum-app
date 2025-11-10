@@ -31,7 +31,7 @@ We're using Designsystemet to challenge ourselves with a professional design sys
 **Frontend:**
 
 - [Next.js](https://nextjs.org/)
-- [Typescript]([https://www.typescriptlang.org/])
+- [Typescript](https://www.typescriptlang.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Designsystemet](https://designsystemet.no/) - UI component library
 
