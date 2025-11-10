@@ -6,6 +6,8 @@ import axios from "axios";
 import Image from "next/image";
 import { UserRoundPen } from "lucide-react";
 import { API_URL } from "@/lib/apiConfig";
+import { useAuth } from "@/context/AuthContext";
+import { changeAvatar } from "@/lib/profile";
 
 type Avatar = {
   id: number;
@@ -18,6 +20,7 @@ type Props = {
 };
 
 export function ChangeAvatarDialog({ currentAvatarUrl }: Props) {
+  const { updateUser } = useAuth();
   const [avatars, setAvatars] = useState<Avatar[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -40,7 +43,7 @@ export function ChangeAvatarDialog({ currentAvatarUrl }: Props) {
       setAvatars(sorted);
     } catch (err) {
       console.error(err);
-      setError("Kunne ikke hente avatarer.");
+      setError("Could not retrieve avatars. Try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -57,20 +60,15 @@ export function ChangeAvatarDialog({ currentAvatarUrl }: Props) {
     setError(undefined);
 
     try {
-      await axios.put(
-        `${API_URL}/api/account/update/avatar`,
-        { avatarId: selectedId },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      // refresh avatar logic her
-      window.location.reload();
+      await changeAvatar(selectedId);
+      const updatedAvatar = avatars.find((a) => a.id === selectedId);
+      if (updatedAvatar) {
+        updateUser({ avatarUrl: updatedAvatar.url });
+      }
+      setOpen(false);
     } catch (err) {
       console.error(err);
-      setError("Kunne ikke oppdatere avatar.");
+      setError("Could not set avatar. Try again later.");
     } finally {
       setIsSubmitting(false);
     }
@@ -80,7 +78,7 @@ export function ChangeAvatarDialog({ currentAvatarUrl }: Props) {
     <Dialog.TriggerContext>
       <Dialog.Trigger asChild>
         <button
-          aria-label="Endre avatar"
+          aria-label="Change avatar"
           onClick={handleOpen}
           className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
         >
@@ -108,7 +106,7 @@ export function ChangeAvatarDialog({ currentAvatarUrl }: Props) {
                     value={avatar.id.toString()}
                     label={
                       <Image
-                        src={`http://51.175.136.91${avatar.url}`}
+                        src={`${API_URL}${avatar.url}`}
                         alt={avatar.name}
                         width={140}
                         height={140}
@@ -128,7 +126,7 @@ export function ChangeAvatarDialog({ currentAvatarUrl }: Props) {
 
         <div className="mt-6 flex justify-end">
           <Button onClick={handleSubmit} loading={isSubmitting} disabled={isSubmitting || !selectedId}>
-            Oppdater avatar
+            Change avatar
           </Button>
         </div>
       </Dialog>

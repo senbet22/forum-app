@@ -22,7 +22,6 @@ const AccountSettings = ({ userData }: SettingsProp) => {
         <Heading level={3} data-size="md" className="mb-2">
           Change Username?
         </Heading>
-        <p className="text-sm text-gray-400 mt-2">You may only change your username once per month.</p>
         <UsernameField lastChanged={userData.lastTimeUsernameChanged} />
       </section>
 

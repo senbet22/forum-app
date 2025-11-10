@@ -1,16 +1,16 @@
-// context/AuthContext.tsx
 "use client";
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { decodeToken } from "@/lib/auth";
-import { User } from "@/types/auth";
+import { getMyAccount } from "@/lib/profile";
+import { LoggedUser } from "@/types/profile";
 
 interface AuthContextType {
-  user: User | null;
-  login: (token: string) => void;
+  user: LoggedUser | null;
+  login: (token: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: () => boolean;
   getToken: () => string | null;
+  updateUser: (newUser: Partial<LoggedUser>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,25 +25,30 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
+  const [user, setUser] = useState<LoggedUser | null>(null);
 
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window === "undefined") return null;
+  // 🔄 Initialiser brukerdata ved mount
+  useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
-      const decodedUser = decodeToken(token);
-      if (!decodedUser) {
-        localStorage.removeItem("token");
-      }
-      return decodedUser;
-    }
-    return null;
-  });
+    if (!token) return;
 
-  const login = (token: string) => {
+    getMyAccount()
+      .then((userData) => setUser(userData))
+      .catch(() => {
+        localStorage.removeItem("token");
+        setUser(null);
+      });
+  }, []);
+
+  const login = async (token: string) => {
     localStorage.setItem("token", token);
-    const userData = decodeToken(token);
-    if (userData) {
+    try {
+      const userData = await getMyAccount();
       setUser(userData);
+    } catch (error) {
+      console.error("Could not retrieve user data:", error);
+      localStorage.removeItem("token");
+      setUser(null);
     }
   };
 
@@ -53,13 +58,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     router.push("/");
   };
 
+  const updateUser = (newUser: Partial<LoggedUser>) => {
+    setUser((prev) => (prev ? { ...prev, ...newUser } : prev));
+  };
+
   const isAuthenticated = () => !!user;
   const getToken = () => localStorage.getItem("token");
 
   return (
-    <AuthContext.Provider
-      value={{ user, login, logout, isAuthenticated, getToken }}
-    >
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated, getToken, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

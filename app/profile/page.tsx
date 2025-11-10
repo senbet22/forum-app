@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Divider, Heading, Skeleton, ToggleGroup } from "@digdir/designsystemet-react";
-import { getMyAccount } from "@/lib/profile";
-import type { LoggedUser } from "@/types/profile";
+import { useState } from "react";
+import { Divider, Heading, ToggleGroup } from "@digdir/designsystemet-react";
 import Image from "next/image";
 import MyPosts from "./components/MyPosts";
 import Account from "./components/Account";
 import AccountSettings from "./components/Settings";
 import { User, FileText, Settings, User2 } from "lucide-react";
 import { ChangeAvatarDialog } from "./components/ChangeAvatarDialog";
+import { useAuth } from "@/context/AuthContext";
 
 const tabs = [
   { value: "account", label: "Account", icon: <User size={26} /> },
@@ -18,8 +17,7 @@ const tabs = [
 ];
 
 const Profile = () => {
-  const [user, setUser] = useState<LoggedUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("account");
 
   const renderContent = () => {
@@ -35,29 +33,6 @@ const Profile = () => {
     }
   };
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const data = await getMyAccount();
-        setUser(data);
-      } catch (error) {
-        console.error("Failed to load user:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="p-4">
-        <Skeleton variant="text" width={20} className="text-3xl" />
-      </div>
-    );
-  }
-
   if (!user) {
     return (
       <div className="p-4">
@@ -67,7 +42,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="p-6 flex flex-col gap-4 min-h-[75svh] w-full max-w-4xl mx-auto text-base-mode bg-theme-foreground rounded-md border border-base-color py-10">
+    <div className="p-6 flex flex-col gap-4 min-h-[75svh] w-full max-w-4xl mx-auto text-base-mode bg-theme-foreground rounded-md py-10">
       <div className="flex flex-row items-end gap-4">
         <div className="relative group w-[200px] h-[200px]">
           {user.avatarUrl ? (
