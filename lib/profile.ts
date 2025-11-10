@@ -24,6 +24,14 @@ interface UsernameAvailableResponse {
     available: boolean;
   };
 }
+
+interface AvatarChangeResponse {
+  httpStatusCode: number;
+  success: boolean;
+  responseMessages: Record<string, string[]>;
+  data: [];
+}
+
 /* Send request to for entire user data */
 export async function getMyAccount() {
   const response = await axiosInstance.get<LoggedUserResponse>(endpoints.account.me);
@@ -63,5 +71,11 @@ export async function changeUsername(newUsername: string) {
   const response = await axiosInstance.put<UsernameChangeResponse>(endpoints.account.updateUsername, {
     username: newUsername,
   });
+  return response.data;
+}
+
+/* Send request to change avatar */
+export async function changeAvatar(avatarId: number) {
+  const response = await axiosInstance.put<AvatarChangeResponse>(endpoints.account.updateAvatar, { avatarId });
   return response.data;
 }
