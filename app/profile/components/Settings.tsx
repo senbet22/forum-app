@@ -1,60 +1,52 @@
 "use client";
 
-import { Heading, Divider } from "@digdir/designsystemet-react";
+import { Alert, Heading, Link } from "@digdir/designsystemet-react";
 import UsernameField from "./UsernameField";
-import { BadgeInfo } from "lucide-react";
-import { LoggedUser } from "@/types/profile";
-//temporarily disabled ChangePasswordDialog until sorting cookie situation
-// import { ChangePasswordDialog } from "./ChangePasswordDialog";
-interface SettingsProp {
-  userData: Pick<LoggedUser, "email" | "username" | "lastTimeUsernameChanged"> | null;
-}
+import { ChangePasswordDialog } from "./ChangePasswordDialog";
+import { useTheme } from "@/context/ThemeContext";
+import { useAuth } from "@/context/AuthContext";
 
-const AccountSettings = ({ userData }: SettingsProp) => {
-  if (!userData) return <p>No user data available</p>;
+const AccountSettings = () => {
+  const { user } = useAuth();
+  const { theme } = useTheme();
 
-  const grayBgAndBorder = "border border-gray-300 bg-gray-500/20 px-4 py-2 rounded-lg";
+  if (!user) return <p>No user data available</p>;
+
+  const grayBgAndBorder = "border-stone-300 bg-stone-50";
+  const darkGrayBgAndBorder = "border-stone-600 bg-stone-800";
 
   return (
     <>
       {/* Username section */}
-      <section className={grayBgAndBorder}>
+      <section className={`border  px-4 py-2 rounded-lg ${theme === "dark" ? darkGrayBgAndBorder : grayBgAndBorder}`}>
         <Heading level={3} data-size="md" className="mb-2">
           Change Username?
         </Heading>
-        <UsernameField lastChanged={userData.lastTimeUsernameChanged} />
+
+        <UsernameField />
       </section>
 
-      <Divider />
-
       {/* Password section */}
-      <section className={grayBgAndBorder}>
+      <section className={`border  px-4 py-2 rounded-lg ${theme === "dark" ? darkGrayBgAndBorder : grayBgAndBorder}`}>
         <Heading level={3} data-size="md" className="mb-2">
           Change password
         </Heading>
         <p className="text-gray-400 mb-2">Update your password securely through the dialog.</p>
-        <button
-          type="button"
-          className="py-2 px-3 rounded bg-gray-500 hover:bg-gray-600 cursor-pointer active:scale-98 transition-all"
-        >
-          Temp Change Password
-        </button>
-        {/*  temporarily disabled ChangePasswordDialog until sorting cookie situation */}
-        {/* <ChangePasswordDialog /> */}
+        <ChangePasswordDialog />
       </section>
 
-      <Divider />
-
       {/* Email section */}
-      <section className={grayBgAndBorder}>
+      <section className={`border  px-4 py-2 rounded-lg ${theme === "dark" ? darkGrayBgAndBorder : grayBgAndBorder}`}>
         <Heading level={3} data-size="md" className="mb-2">
           Email
         </Heading>
         <p>Your current email:</p>
-        <div className="p-2 border rounded">{userData.email}</div>
-        <p className="text-gray-400 mt-2 flex items-center gap-2">
-          <BadgeInfo size={18} /> If you wish to change your email or think it has been breached, contact us here.
+        <p className={`p-2 border rounded  ${theme === "dark" ? "text-stone-600" : "text-gray-400"}`}>
+          <strong>{user.email}</strong>
         </p>
+        <Alert className={`mt-2 flex items-center gap-2`}>
+          If you wish to change your email or have any other issues, contact us <Link href="#">here</Link>.
+        </Alert>
       </section>
     </>
   );

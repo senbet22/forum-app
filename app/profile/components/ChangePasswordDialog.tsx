@@ -1,81 +1,81 @@
 "use client";
 
 import { changeOldPassword, changeOldPasswordFinalize } from "@/lib/profile";
-import { Dialog, Heading, Textfield, Button } from "@digdir/designsystemet-react";
+import { Dialog, Heading, Textfield, Button, Alert, ErrorSummary } from "@digdir/designsystemet-react";
 import { useState } from "react";
 
 export function ChangePasswordDialog() {
+  const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"old" | "verify">("old");
   const [oldPassword, setOldPassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [code, setCode] = useState<string>("");
-  const [error, setError] = useState<string | undefined>();
+  const [errors, setErrors] = useState<string[]>([]);
   const [isLoadingOld, setIsLoadingOld] = useState(false);
   const [isLoadingFinalize, setIsLoadingFinalize] = useState(false);
 
-  const handleDialogClose = () => {
+  const returnToDefaultState = () => {
     setStep("old");
+    setErrors([]);
     setOldPassword("");
     setNewPassword("");
     setConfirmPassword("");
     setCode("");
-    setError(undefined);
     setIsLoadingOld(false);
     setIsLoadingFinalize(false);
   };
 
+  const handleDialogClose = () => {
+    setOpen(false);
+    returnToDefaultState();
+  };
+
   const handleOldPasswordSubmit = async () => {
-    setError(undefined);
+    setErrors([]);
     setIsLoadingOld(true);
 
     try {
       const res = await changeOldPassword(oldPassword);
-
-      if (res.success) {
-        // Backend sender verifikasjonskode (e-post/SMS). Gå til steg 2.
-        setStep("verify");
-      } else {
-        if (res.responseMessages?.OldPassword) {
-          setError(res.responseMessages.OldPassword[0]);
-        } else {
-          setError("Kunne ikke starte passordendring.");
-        }
-      }
-    } catch (err: unknown) {
-      setError("Ukjent feil.");
+      if (res.success) setStep("verify");
+    } catch {
+      setErrors(["Request denied, invalid password"]);
     } finally {
       setIsLoadingOld(false);
     }
   };
 
   const handleFinalize = async () => {
-    setError(undefined);
-    setIsLoadingFinalize(true);
+    const newErrors: string[] = [];
+
+    if (code.length !== 6) {
+      newErrors.push("Code must be exactly 6 digits.");
+    }
 
     if (newPassword !== confirmPassword) {
-      setError("Passordene er ikke like.");
-      setIsLoadingFinalize(false);
+      newErrors.push("The passwords are not the same.");
+    }
+
+    if (newErrors.length > 0) {
+      setErrors(newErrors);
       return;
     }
+
+    setIsLoadingFinalize(true);
 
     try {
       const res = await changeOldPasswordFinalize(code, newPassword);
 
-      if (res.success) {
-        alert("Passordet er oppdatert!");
+      if (res.httpStatusCode === 200) {
         handleDialogClose();
+        alert("Password has been changed successfully");
       } else {
-        if (res.responseMessages?.NewPassword) {
-          setError(res.responseMessages.NewPassword[0]);
-        } else if (res.responseMessages?.Code) {
-          setError(res.responseMessages.Code[0]);
-        } else {
-          setError("Kunne ikke oppdatere passordet.");
-        }
+        setErrors([
+          res.responseMessages?.NewPassword?.[0] ?? res.responseMessages?.Code?.[0] ?? "Could not update password.",
+        ]);
       }
-    } catch (err: unknown) {
-      setError("Ukjent feil.");
+    } catch {
+      setErrors(["Unknown error."]);
     } finally {
       setIsLoadingFinalize(false);
     }
@@ -83,52 +83,94 @@ export function ChangePasswordDialog() {
 
   return (
     <Dialog.TriggerContext>
-      {/* Knappen som åpner dialogen */}
-      <Dialog.Trigger>Change password</Dialog.Trigger>
+      {/* Dialog trigger */}
+      <Dialog.Trigger onClick={() => setOpen(true)}>Change password</Dialog.Trigger>
 
-      <Dialog onClose={handleDialogClose}>
-        <Heading level={2} style={{ marginBottom: "var(--ds-size-2)" }}>
-          Change password
-        </Heading>
+      {/* Dialog container */}
+      <Dialog open={open} onClose={handleDialogClose}>
+        <Heading level={2}>Change password</Heading>
 
         {step === "old" && (
-          <div className="flex flex-col gap-2">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleOldPasswordSubmit();
+            }}
+            className="flex flex-col gap-2"
+          >
             <Textfield
+              id="oldPassword"
               type="password"
               label="Current password"
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
-              error={error}
+              error={errors.length > 0 ? errors[0] : undefined}
             />
-            <Button onClick={handleOldPasswordSubmit} loading={isLoadingOld} disabled={isLoadingOld}>
+            <Button type="submit" loading={isLoadingOld} disabled={isLoadingOld}>
               Continue
             </Button>
-          </div>
+          </form>
         )}
 
         {step === "verify" && (
-          <div className="flex flex-col gap-2">
-            <p className="text-gray-400">
-              A code has been sent to registered email, please enter to verify and allow password change.
-            </p>
-            <Textfield label="Verification code" value={code} onChange={(e) => setCode(e.target.value)} maxLength={6} />
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleFinalize();
+            }}
+            className="flex flex-col gap-2"
+          >
+            <Alert data-color="info">
+              A code has been sent to registered email, please enter to verify and proceed with password change.
+            </Alert>
+
             <Textfield
+              id="code"
+              type="text"
+              label="Verification code"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              error={errors.find((e) => e.toLowerCase().includes("kode"))}
+            />
+
+            <Textfield
+              id="newPassword"
               type="password"
               label="New password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
             />
+
             <Textfield
+              id="confirmPassword"
               type="password"
               label="Confirm new password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               error={newPassword !== confirmPassword && confirmPassword !== "" ? "Passwords do not match" : undefined}
             />
-            <Button onClick={handleFinalize} loading={isLoadingFinalize} disabled={isLoadingFinalize}>
+
+            <Button type="submit" loading={isLoadingFinalize} disabled={isLoadingFinalize}>
               Update password
             </Button>
-          </div>
+
+            {errors.length > 0 && (
+              <ErrorSummary>
+                <ErrorSummary.Heading>To proceed, you must correct the following errors:</ErrorSummary.Heading>
+                <ErrorSummary.List>
+                  {errors.map((err, idx) => (
+                    <ErrorSummary.Item key={idx}>
+                      <ErrorSummary.Link
+                        href={`#${err.toLowerCase().includes("code") ? "code" : err.toLowerCase().includes("passord") ? "confirmPassword" : "newPassword"}`}
+                      >
+                        {err}
+                      </ErrorSummary.Link>
+                    </ErrorSummary.Item>
+                  ))}
+                </ErrorSummary.List>
+              </ErrorSummary>
+            )}
+          </form>
         )}
       </Dialog>
     </Dialog.TriggerContext>

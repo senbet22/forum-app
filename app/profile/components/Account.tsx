@@ -1,12 +1,16 @@
 import { formatReadableDate } from "@/utils/formatReadableDate";
 import { Divider, Heading } from "@digdir/designsystemet-react";
 import type { LoggedUser } from "@/types/profile";
+import MyPosts from "./MyPosts";
+import { useTheme } from "@/context/ThemeContext";
 
 interface AccountProp {
   userData: Pick<LoggedUser, "createdAt" | "role" | "messageCount" | "postCount"> | null;
 }
 
 const Account = ({ userData }: AccountProp) => {
+  const { theme } = useTheme();
+
   if (!userData) {
     return (
       <>
@@ -20,32 +24,29 @@ const Account = ({ userData }: AccountProp) => {
 
   const formatDate = formatReadableDate(userData.createdAt);
 
-  const grayBgAndBorder = "border border-gray-300 bg-gray-500/20 px-4 py-2 rounded-lg";
+  const grayBgAndBorder = "border-stone-300 bg-stone-50";
+  const darkGrayBgAndBorder = "border-stone-600 bg-stone-800";
 
   return (
     <>
-      <div className={grayBgAndBorder}>
+      <div className={`border  px-4 py-2 rounded-lg ${theme === "dark" ? darkGrayBgAndBorder : grayBgAndBorder}`}>
         <Heading data-size="sm" level={2}>
-          Your role is <strong className="underline">{userData.role}</strong>
+          You have sent a total of <strong className="underline">{userData.messageCount}</strong> messages
         </Heading>
       </div>
 
-      <div className={grayBgAndBorder}>
+      <div className={`border  px-4 py-2 rounded-lg ${theme === "dark" ? darkGrayBgAndBorder : grayBgAndBorder}`}>
         <Heading data-size="sm" level={2}>
-          You´ve sent a total of <strong className="underline">{userData.messageCount}</strong> messages
+          You have made <strong className="underline">{userData.postCount}</strong> post(s)
         </Heading>
       </div>
 
-      <div className={grayBgAndBorder}>
-        <Heading data-size="sm" level={2}>
-          You have made <strong className="underline">{userData.postCount}</strong> many post(s)
-        </Heading>
-      </div>
+      <MyPosts />
 
       <Divider />
-      <Heading data-size="sm" level={3} className="text-gray-400">
-        Your account was created at <strong>{formatDate}</strong>
-      </Heading>
+      <p className="text-gray-400">
+        Your account was created at <strong>{formatDate}</strong> (dd.mm.yyyy)
+      </p>
     </>
   );
 };

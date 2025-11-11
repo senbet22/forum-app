@@ -1,38 +1,33 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Textfield, Button, Alert, Spinner } from "@digdir/designsystemet-react";
+import { Textfield, Button, Alert, Spinner, Tooltip } from "@digdir/designsystemet-react";
 import { Circle, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { changeUsername, getMyAccount, checkUsernameAvailable } from "@/lib/profile";
 import { canChangeUsername } from "@/utils/canChangeUsername";
 import { useAuth } from "@/context/AuthContext";
 
-interface UsernameFieldProps {
-  lastChanged: string;
-  onUpdated?: (newUsername: string) => void;
-}
-
 const USERNAME_REGEX = /^(?=.{3,30}$)[a-zA-Z]+(?:[ _][a-zA-Z]+)*$/;
 
-export default function UsernameField({ lastChanged, onUpdated }: UsernameFieldProps) {
-  const { updateUser } = useAuth();
+export default function UsernameField() {
+  const { user, updateUser } = useAuth();
   const [username, setUsername] = useState("");
   const [available, setAvailable] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const { allowed, remainingDays, nextAllowedDate } = canChangeUsername(lastChanged);
+  const { allowed, remainingSeconds, nextAllowedDate } = canChangeUsername(user?.lastTimeUsernameChanged);
 
   useEffect(() => {
     if (!allowed) {
       setError(
-        `You must wait ${remainingDays} day${remainingDays !== 1 ? "s" : ""} until you can change your name again.`
+        `You must wait ${remainingSeconds} seconds${remainingSeconds !== 1 ? "s" : ""} until you can change your name again.`
       );
     } else {
       setError(null);
     }
-  }, [allowed, remainingDays, lastChanged]);
+  }, [allowed, remainingSeconds]);
 
   useEffect(() => {
     const cleaned = username.trim();
@@ -43,7 +38,7 @@ export default function UsernameField({ lastChanged, onUpdated }: UsernameFieldP
     }
 
     if (!USERNAME_REGEX.test(cleaned)) {
-      setError("Username must be 3–30 letters, spaces or underscores only.");
+      setError("Username must be 3-30 letters, spaces or underscores only.");
       setAvailable(null);
       return;
     }
@@ -77,9 +72,9 @@ export default function UsernameField({ lastChanged, onUpdated }: UsernameFieldP
     if (!available || error) return;
     try {
       setSaving(true);
-      await changeUsername(username.trim());
+      const data = await changeUsername(username.trim());
       const me = await getMyAccount();
-      updateUser({ username: me.username });
+      if (data.httpStatusCode === 200) updateUser({ username: me.username });
       setUsername("");
     } catch {
       setError("Failed to update username.");
@@ -91,11 +86,15 @@ export default function UsernameField({ lastChanged, onUpdated }: UsernameFieldP
   return (
     <form onSubmit={handleSave} className="w-full gap-2 flex flex-col">
       {!allowed && nextAllowedDate && (
-        <Alert data-color="info">You can change your username again on {nextAllowedDate.toLocaleString("no-NO")}</Alert>
+        <Alert data-color="warning" className="mt-4">
+          You can change your username again on {nextAllowedDate.toLocaleString("no-NO")} ({remainingSeconds} seconds
+          remaining)
+        </Alert>
       )}
 
       <div className="w-full flex items-start mt-4">
         <Textfield
+          type="text"
           label="Enter new username"
           description="You may only change your username once per month."
           value={username}
@@ -103,9 +102,11 @@ export default function UsernameField({ lastChanged, onUpdated }: UsernameFieldP
           error={error ?? (available === false ? "Username is taken" : undefined)}
           className="w-full"
         />
-        <div className="h-12 w-12 grid items-center mt-[62px] justify-center border border-base-color rounded">
-          {loading ? <Spinner data-size="xs" aria-label="Checks if name is available" /> : icon}
-        </div>
+        <Tooltip content="Is name available indicator">
+          <div className="h-12 w-12 grid items-center ml-2 mt-[62px] justify-center border border-gray-500 rounded">
+            {loading ? <Spinner data-size="xs" aria-label="Checks if name is available" /> : icon}
+          </div>
+        </Tooltip>
       </div>
 
       <Button type="submit" disabled={available !== true || !!error || saving || !allowed} className="mt-2.5">

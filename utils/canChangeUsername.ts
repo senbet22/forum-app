@@ -1,34 +1,34 @@
 export function canChangeUsername(
-  lastChanged: string,
-  cooldownDays = 30,
-  cooldownSeconds = 20
+  lastChanged?: string,
+  backendCooldownSeconds = 20,
+  frontendExtraSeconds = 600 // add 1 minute extra on top
 ): {
   allowed: boolean;
   nextAllowedDate: Date | null;
-  remainingDays: number;
+  remainingSeconds: number;
 } {
-  const neverChanged = lastChanged.startsWith("0001");
-  if (neverChanged) {
-    return { allowed: true, nextAllowedDate: null, remainingDays: 0 };
+  if (!lastChanged || lastChanged.startsWith("0001")) {
+    return { allowed: true, nextAllowedDate: null, remainingSeconds: 0 };
   }
 
-  const last = new Date(lastChanged);
+  // Normalize ISO string with long milliseconds
+  const normalized = lastChanged.replace(/\.(\d{3})\d*Z$/, ".$1Z");
+  const last = new Date(normalized);
+  if (isNaN(last.getTime())) {
+    return { allowed: true, nextAllowedDate: null, remainingSeconds: 0 };
+  }
+
   const now = new Date();
   const next = new Date(last);
 
-  // Cooldown 20 seconds
-  next.setSeconds(next.getSeconds() + cooldownSeconds);
-  const remaining = Math.ceil((next.getTime() - now.getTime()) / 1000);
-
-  // Cooldown 30 days
-  // next.setDate(next.getDate() + cooldownDays);  <--- gets read here, false linting
-  // const remaining = Math.ceil((next.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  next.setSeconds(next.getSeconds() + backendCooldownSeconds + frontendExtraSeconds);
 
   const allowed = now >= next;
+  const remainingSeconds = Math.ceil((next.getTime() - now.getTime()) / 1000);
 
   return {
     allowed,
     nextAllowedDate: next,
-    remainingDays: allowed ? 0 : remaining,
+    remainingSeconds: allowed ? 0 : remainingSeconds,
   };
 }
