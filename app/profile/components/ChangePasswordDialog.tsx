@@ -5,6 +5,7 @@ import { Dialog, Heading, Textfield, Button, Alert, ErrorSummary } from "@digdir
 import { useState } from "react";
 
 export function ChangePasswordDialog() {
+  const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"old" | "verify">("old");
   const [oldPassword, setOldPassword] = useState<string>("");
   const [newPassword, setNewPassword] = useState<string>("");
@@ -14,7 +15,7 @@ export function ChangePasswordDialog() {
   const [isLoadingOld, setIsLoadingOld] = useState(false);
   const [isLoadingFinalize, setIsLoadingFinalize] = useState(false);
 
-  const handleDialogClose = () => {
+  const returnToDefaultState = () => {
     setStep("old");
     setErrors([]);
     setOldPassword("");
@@ -23,6 +24,11 @@ export function ChangePasswordDialog() {
     setCode("");
     setIsLoadingOld(false);
     setIsLoadingFinalize(false);
+  };
+
+  const handleDialogClose = () => {
+    setOpen(false);
+    returnToDefaultState();
   };
 
   const handleOldPasswordSubmit = async () => {
@@ -59,9 +65,11 @@ export function ChangePasswordDialog() {
 
     try {
       const res = await changeOldPasswordFinalize(code, newPassword);
-      if (res.success) {
-        alert("Password has been changed succesfully");
+      console.log(res);
+
+      if (res.httpStatusCode === 200) {
         handleDialogClose();
+        alert("Password has been changed successfully");
       } else {
         setErrors([
           res.responseMessages?.NewPassword?.[0] ?? res.responseMessages?.Code?.[0] ?? "Could not update password.",
@@ -76,8 +84,11 @@ export function ChangePasswordDialog() {
 
   return (
     <Dialog.TriggerContext>
-      <Dialog.Trigger>Change password</Dialog.Trigger>
-      <Dialog onClose={handleDialogClose}>
+      {/* Dialog trigger */}
+      <Dialog.Trigger onClick={() => setOpen(true)}>Change password</Dialog.Trigger>
+
+      {/* Dialog container */}
+      <Dialog open={open} onClose={handleDialogClose}>
         <Heading level={2}>Change password</Heading>
 
         {step === "old" && (
