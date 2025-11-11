@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog, Heading, Fieldset, Radio, Button, Spinner } from "@digdir/designsystemet-react";
+import { Dialog, Heading, Fieldset, Radio, Button, Spinner, Alert } from "@digdir/designsystemet-react";
 import axios from "axios";
 import Image from "next/image";
 import { UserRoundPen } from "lucide-react";
@@ -20,8 +20,9 @@ type Props = {
 };
 
 export function ChangeAvatarDialog({ currentAvatarUrl }: Props) {
-  const { updateUser } = useAuth();
+  const { user, updateUser } = useAuth();
   const [avatars, setAvatars] = useState<Avatar[]>([]);
+  const [submitError, setSubmitError] = useState<string>("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,8 +55,16 @@ export function ChangeAvatarDialog({ currentAvatarUrl }: Props) {
     await fetchAvatars();
   };
 
+  const currentAvatar = avatars.find((a) => a.url === user?.avatarUrl);
+  const isSameAvatar = selectedId !== null && currentAvatar?.id === selectedId;
+
   const handleSubmit = async () => {
     if (!selectedId) return;
+
+    if (isSameAvatar) {
+      setSubmitError("Avatar already in use, please pick a different.");
+      return;
+    }
     setIsSubmitting(true);
     setError(undefined);
 
@@ -76,18 +85,20 @@ export function ChangeAvatarDialog({ currentAvatarUrl }: Props) {
 
   return (
     <Dialog.TriggerContext>
+      {/* Dialog trigger button */}
       <Dialog.Trigger asChild>
         <button
           aria-label="Change avatar"
           onClick={handleOpen}
           className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
         >
-          <UserRoundPen size={34} className="text-white" />
+          <UserRoundPen size={34} className="text-white cursor-pointer" />
         </button>
       </Dialog.Trigger>
 
+      {/* Dialog content */}
       <Dialog open={open} onClose={() => setOpen(false)}>
-        <Heading level={2}>Velg ny avatar</Heading>
+        <Heading level={2}>Choose a new avatar</Heading>
 
         {isLoading ? (
           <div className="flex justify-center py-8">
@@ -115,6 +126,7 @@ export function ChangeAvatarDialog({ currentAvatarUrl }: Props) {
                     }
                     checked={selectedId === avatar.id}
                     onChange={() => setSelectedId(avatar.id)}
+                    className={`p-2 ${isSameAvatar ? "border-green-800" : "border-gray-500"} `}
                   />
                 ))}
               </div>
@@ -124,8 +136,14 @@ export function ChangeAvatarDialog({ currentAvatarUrl }: Props) {
 
         {error && <p className="text-red-600 mt-2">{error}</p>}
 
-        <div className="mt-6 flex justify-end">
-          <Button onClick={handleSubmit} loading={isSubmitting} disabled={isSubmitting || !selectedId}>
+        {isSameAvatar && submitError && (
+          <Alert data-color="warning" className="mt-4">
+            {submitError}
+          </Alert>
+        )}
+
+        <div className={`mt-6 flex justify-end`}>
+          <Button onClick={handleSubmit} loading={isSubmitting} disabled={isSubmitting || !selectedId || isSameAvatar}>
             Change avatar
           </Button>
         </div>

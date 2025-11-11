@@ -3,9 +3,11 @@ import { Heading, Skeleton } from "@digdir/designsystemet-react";
 const MyPosts = () => {
   return (
     <>
-      <Heading level={2} data-size="lg" className="text-2xl font-bold mb-4">
+      <Heading level={3} data-size="md" className="text-2xl font-bold mb-4">
         My Posts
       </Heading>
+
+      {/* Make use of ul and li to form semantic list using loop or map */}
       <div className="grid grid-cols-[1fr_150px_150px]">
         <p>Title of post:</p>
         <p>| Comments:</p>
@@ -16,6 +18,7 @@ const MyPosts = () => {
           <Skeleton key={index} variant="rectangle" width="100%" height={100}></Skeleton>
         ))}
       </div>
+      <div>Paginering senere</div>
     </>
   );
 };
