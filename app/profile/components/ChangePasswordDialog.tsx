@@ -65,7 +65,6 @@ export function ChangePasswordDialog() {
 
     try {
       const res = await changeOldPasswordFinalize(code, newPassword);
-      console.log(res);
 
       if (res.httpStatusCode === 200) {
         handleDialogClose();
