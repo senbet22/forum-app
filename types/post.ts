@@ -1,4 +1,4 @@
-import { Category, Subcategory } from "./category";
+import { Subcategory } from "./category";
 import { User } from "./user";
 
 export type Post = {

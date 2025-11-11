@@ -17,18 +17,23 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  // Initialize theme from localStorage or default to "dark"
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== "undefined") {
-      const savedTheme = localStorage.getItem("theme") as Theme | null;
-      return savedTheme || "dark";
+const getInitialTheme = (): Theme => {
+  if (typeof window !== "undefined") {
+    const savedTheme = localStorage.getItem("theme") as Theme | null;
+    if (savedTheme) {
+      return savedTheme;
     }
-    return "dark";
-  });
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+  }
+  return "light"; // Default theme for server-side rendering
+};
+
+export const ThemeProvider = ({ children }: { children: ReactNode }) => {
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
-    // Update the data-color-scheme attribute and save to localStorage
     document.body.setAttribute("data-color-scheme", theme);
     localStorage.setItem("theme", theme);
   }, [theme]);

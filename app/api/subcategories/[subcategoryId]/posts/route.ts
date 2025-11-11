@@ -36,7 +36,10 @@ export async function GET(
   const subcategoryId = parseInt(params.subcategoryId);
 
   if (isNaN(subcategoryId)) {
-    return NextResponse.json({ error: "Invalid subcategory ID" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid subcategory ID" },
+      { status: 400 }
+    );
   }
 
   const filteredPosts = posts.filter(
