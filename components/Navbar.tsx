@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button, Dropdown, Avatar, Switch } from "@digdir/designsystemet-react";
 import { useAuth } from "@/context/AuthContext";
@@ -13,6 +13,11 @@ const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <header
@@ -25,7 +30,13 @@ const Navbar = () => {
       <nav className="flex justify-between px-8 items-center h-20 max-w-6xl mx-auto w-full">
         <div className="flex gap-6">
           <Link data-color="neutral" href="/">
-            <Image src={theme === "dark" ? assets.logo_dark : assets.logo} width={250} alt="Felles Forumet Logo" />
+            {mounted && (
+              <Image
+                src={theme === "dark" ? assets.logo_dark : assets.logo}
+                width={250}
+                alt="Felles Forumet Logo"
+              />
+            )}
           </Link>
         </div>
 

@@ -1,34 +1,70 @@
 "use client";
-
+import { PostCard } from "@/components/PostCard";
 import { useEffect, useState } from "react";
-import { getTopicTree } from "@/lib/topic";
-import { TopicTree } from "@/components/TopicTree";
-import { TopicNode } from "@/lib/topic";
+import { getCategoryTree } from "@/lib/category";
+import { getLatestPosts, getPostsBySubcategory } from "@/lib/post";
+import { CategoryTree } from "@/components/CategoryTree";
+import { Category } from "@/types/category";
+import { Post } from "@/types/post";
 import { Heading, Skeleton } from "@digdir/designsystemet-react";
 
 export default function HomePage() {
-  const [topics, setTopics] = useState<TopicNode[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [isErrorPosts, setIsErrorPosts] = useState(false);
 
   useEffect(() => {
-    const fetchTopics = async () => {
+    const fetchCategories = async () => {
       try {
         setIsLoading(true);
         setIsError(false);
 
-        const response = await getTopicTree();
-        setTopics(response.data);
+        const response = await getCategoryTree();
+        setCategories(response.data);
       } catch (error) {
-        console.error("Failed to fetch topic tree:", error);
+        console.error("Failed to fetch category tree:", error);
         setIsError(true);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchTopics();
+    const fetchLatestPosts = async () => {
+      try {
+        setIsLoadingPosts(true);
+        setIsErrorPosts(false);
+
+        const response = await getLatestPosts();
+        setPosts(response);
+      } catch (error) {
+        console.error("Failed to fetch latest posts:", error);
+        setIsErrorPosts(true);
+      } finally {
+        setIsLoadingPosts(false);
+      }
+    };
+
+    fetchCategories();
+    fetchLatestPosts();
   }, []);
+
+  const handleSubcategoryClick = async (subcategoryId: number) => {
+    try {
+      setIsLoadingPosts(true);
+      setIsErrorPosts(false);
+
+      const response = await getPostsBySubcategory(subcategoryId);
+      setPosts(response);
+    } catch (error) {
+      console.error("Failed to fetch posts for subcategory:", error);
+      setIsErrorPosts(true);
+    } finally {
+      setIsLoadingPosts(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -55,14 +91,17 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex gap-6 min-h-screen">
+    <div className="flex gap-6 my-15 min-h-screen">
       {/* Left Sidebar - Fixed */}
-      <aside className="w-64 fixed left-0 top-16 bottom-0 overflow-y-auto p-4">
+      <aside className="w-64 fixed left-0 my-15 top-16 bottom-0 overflow-y-auto px-4">
         <Heading level={3} data-size="sm" className="mb-4">
           Categories
         </Heading>
-        {topics.length > 0 ? (
-          <TopicTree topics={topics} />
+        {categories.length > 0 ? (
+          <CategoryTree
+            categories={categories}
+            onSubcategoryClick={handleSubcategoryClick}
+          />
         ) : (
           <p className="text-sm">Ingen kategorier tilgjengelig.</p>
         )}
@@ -74,13 +113,24 @@ export default function HomePage() {
           <Heading level={2} data-size="md" className="mb-4">
             Feed
           </Heading>
-          <div className="space-y-4">
-            {Array.from({ length: 20 }).map((_, index) => (
-              <Skeleton width="100%" height={120} key={index}>
-                Element {index + 1}
-              </Skeleton>
-            ))}
-          </div>
+          {isLoadingPosts ? (
+            <div className="space-y-4">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Skeleton width="100%" height={120} key={index} />
+              ))}
+            </div>
+          ) : isErrorPosts ? (
+            <p>Could not retrieve posts. Please check again later!</p>
+          ) : posts.length > 0 ? (
+            <div className="space-y-4">
+              {posts.map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))}
+            </div>
+          ) : (
+            <p>No posts made yet.</p>
+          )}
+          ...
         </section>
       </div>
     </div>
