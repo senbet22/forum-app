@@ -114,16 +114,7 @@ export default function UsernameField() {
 
       <Button type="submit" disabled={available !== true || !!error || saving || !allowed} className="mt-2.5">
         {saving ? "Saving..." : "Save"}
-      </Button>
-
-      <Button
-        type="button"
-        onClick={() => {
-          toastSuccess("Du er dum!");
-        }}
-      >
-        Hva faen
-      </Button>
+      </Button>    
     </form>
   );
 }
