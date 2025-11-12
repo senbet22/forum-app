@@ -4,8 +4,7 @@ export interface Toast {
   id: string;
   message: string;
   color: ToastColor;
-  duration?: number;
-  redirectUrl?: string;
+  duration: number;
 }
 
 export interface ToastContextType {
