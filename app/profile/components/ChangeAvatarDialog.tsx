@@ -8,6 +8,7 @@ import { UserRoundPen } from "lucide-react";
 import { API_URL } from "@/lib/apiConfig";
 import { useAuth } from "@/context/AuthContext";
 import { changeAvatar } from "@/lib/profile";
+import { useToaster } from "@/hooks/useToaster";
 
 type Avatar = {
   id: number;
@@ -21,6 +22,7 @@ type Props = {
 
 export function ChangeAvatarDialog({ currentAvatarUrl }: Props) {
   const { user, updateUser } = useAuth();
+  const { toastSuccess } = useToaster();
   const [avatars, setAvatars] = useState<Avatar[]>([]);
   const [submitError, setSubmitError] = useState<string>("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -75,6 +77,7 @@ export function ChangeAvatarDialog({ currentAvatarUrl }: Props) {
         updateUser({ avatarUrl: updatedAvatar.url });
       }
       setOpen(false);
+      toastSuccess("Avatar updated!");
     } catch (err) {
       console.error(err);
       setError("Could not set avatar. Try again later.");

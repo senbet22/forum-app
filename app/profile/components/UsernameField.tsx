@@ -6,10 +6,12 @@ import { Circle, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { changeUsername, getMyAccount, checkUsernameAvailable } from "@/lib/profile";
 import { canChangeUsername } from "@/utils/canChangeUsername";
 import { useAuth } from "@/context/AuthContext";
+import { useToaster } from "@/hooks/useToaster";
 
 const USERNAME_REGEX = /^(?=.{3,30}$)[a-zA-Z]+(?:[ _][a-zA-Z]+)*$/;
 
 export default function UsernameField() {
+  const { toastSuccess } = useToaster();
   const { user, updateUser } = useAuth();
   const [username, setUsername] = useState("");
   const [available, setAvailable] = useState<boolean | null>(null);
@@ -76,6 +78,7 @@ export default function UsernameField() {
       const me = await getMyAccount();
       if (data.httpStatusCode === 200) updateUser({ username: me.username });
       setUsername("");
+      toastSuccess("Username changed");
     } catch {
       setError("Failed to update username.");
     } finally {
@@ -111,6 +114,15 @@ export default function UsernameField() {
 
       <Button type="submit" disabled={available !== true || !!error || saving || !allowed} className="mt-2.5">
         {saving ? "Saving..." : "Save"}
+      </Button>
+
+      <Button
+        type="button"
+        onClick={() => {
+          toastSuccess("Du er dum!");
+        }}
+      >
+        Hva faen
       </Button>
     </form>
   );
