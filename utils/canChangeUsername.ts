@@ -1,7 +1,7 @@
 export function canChangeUsername(
   lastChanged?: string,
   backendCooldownSeconds = 20,
-  frontendExtraSeconds = 600 // add 1 minute extra on top
+  frontendExtraSeconds = 600
 ): {
   allowed: boolean;
   nextAllowedDate: Date | null;

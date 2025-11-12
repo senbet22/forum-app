@@ -1,10 +1,12 @@
 "use client";
 
+import { useToaster } from "@/hooks/useToaster";
 import { changeOldPassword, changeOldPasswordFinalize } from "@/lib/profile";
 import { Dialog, Heading, Textfield, Button, Alert, ErrorSummary } from "@digdir/designsystemet-react";
 import { useState } from "react";
 
 export function ChangePasswordDialog() {
+  const { toastSuccess } = useToaster();
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<"old" | "verify">("old");
   const [oldPassword, setOldPassword] = useState<string>("");
@@ -68,7 +70,7 @@ export function ChangePasswordDialog() {
 
       if (res.httpStatusCode === 200) {
         handleDialogClose();
-        alert("Password has been changed successfully");
+        toastSuccess("Password updated successfully.");
       } else {
         setErrors([
           res.responseMessages?.NewPassword?.[0] ?? res.responseMessages?.Code?.[0] ?? "Could not update password.",

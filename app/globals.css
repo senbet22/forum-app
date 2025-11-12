@@ -5,3 +5,29 @@
 body {
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Toast animations controlled by duration of toast via 'duration = 5000'*/
+@layer utilities {
+  @keyframes toast-sequence {
+    0% {
+      transform: translateX(150px);
+      opacity: 0;
+    }
+    6% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    93% {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(-80px);
+      opacity: 0;
+    }
+  }
+
+  .toast-sequence {
+    animation: toast-sequence ease-in-out forwards;
+  }
+}

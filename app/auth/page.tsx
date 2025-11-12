@@ -1,20 +1,16 @@
 "use client";
+
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import {
-  Button,
-  Heading,
-  Link,
-  Paragraph,
-  Textfield,
-  ErrorSummary,
-} from "@digdir/designsystemet-react";
+import { Button, Heading, Link, Paragraph, Textfield, ErrorSummary } from "@digdir/designsystemet-react";
 import { useState, FormEvent } from "react";
 import { login as apiLogin, register } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import RegistrationDialogModal from "@/components/modal/RegistrationDialogModal";
+import { useToaster } from "@/hooks/useToaster";
 
 const Auth: React.FC = () => {
+  const { toast } = useToaster();
   const [state, setState] = useState<"Login" | "Sign Up">("Login");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -32,7 +28,7 @@ const Auth: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const router = useRouter();
-  const { login } = useAuth(); // Add this
+  const { login } = useAuth();
 
   const onSubmitHandler = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -72,15 +68,12 @@ const Auth: React.FC = () => {
         setEmail("");
         setPassword("");
       } else {
-        // LOGIN LOGIC
         await apiLogin(email, password);
-
-        // Get token and update context
         const token = localStorage.getItem("token");
         if (token) {
-          login(token); // Update AuthContext state
+          login(token);
         }
-
+        toast("Welcome to Felles Forumet", "success", 6500);
         router.push("/");
       }
     } catch (err: unknown) {
@@ -144,10 +137,7 @@ const Auth: React.FC = () => {
         setErrors({ general: err.message });
       } else {
         setErrors({
-          general:
-            state === "Sign Up"
-              ? "Registration failed. Please try again."
-              : "Login failed. Please try again.",
+          general: state === "Sign Up" ? "Registration failed. Please try again." : "Login failed. Please try again.",
         });
       }
     } finally {
@@ -162,15 +152,8 @@ const Auth: React.FC = () => {
 
   return (
     <>
-      <form
-        onSubmit={onSubmitHandler}
-        className="flex flex-col justify-center py-20 items-center"
-      >
-        <Heading
-          level={1}
-          data-size="lg"
-          style={{ marginBottom: "var(--ds-size-5)" }}
-        >
+      <form onSubmit={onSubmitHandler} className="flex flex-col justify-center py-20 items-center">
+        <Heading level={1} data-size="lg" style={{ marginBottom: "var(--ds-size-5)" }}>
           {state === "Sign Up" ? "Create Account" : "Login"}
         </Heading>
 
@@ -205,58 +188,37 @@ const Auth: React.FC = () => {
           />
 
           <Button type="submit" className="cursor-pointer" disabled={loading}>
-            {loading
-              ? "Loading..."
-              : state === "Sign Up"
-                ? "Create Account"
-                : "Login"}
+            {loading ? "Loading..." : state === "Sign Up" ? "Create Account" : "Login"}
           </Button>
 
-          {(errors.email ||
-            errors.password ||
-            errors.username ||
-            errors.general) && (
+          {(errors.email || errors.password || errors.username || errors.general) && (
             <ErrorSummary>
-              <ErrorSummary.Heading>
-                To continue, you must correct the following errors:
-              </ErrorSummary.Heading>
+              <ErrorSummary.Heading>To continue, you must correct the following errors:</ErrorSummary.Heading>
               <ErrorSummary.List>
                 {errors.username && (
                   <ErrorSummary.Item>
-                    <ErrorSummary.Link href="#username">
-                      {errors.username}
-                    </ErrorSummary.Link>
+                    <ErrorSummary.Link href="#username">{errors.username}</ErrorSummary.Link>
                   </ErrorSummary.Item>
                 )}
                 {errors.email && (
                   <ErrorSummary.Item>
-                    <ErrorSummary.Link href="#email">
-                      {errors.email}
-                    </ErrorSummary.Link>
+                    <ErrorSummary.Link href="#email">{errors.email}</ErrorSummary.Link>
                   </ErrorSummary.Item>
                 )}
                 {errors.password && (
                   <ErrorSummary.Item>
-                    <ErrorSummary.Link href="#password">
-                      {errors.password}
-                    </ErrorSummary.Link>
+                    <ErrorSummary.Link href="#password">{errors.password}</ErrorSummary.Link>
                   </ErrorSummary.Item>
                 )}
-                {errors.general && (
-                  <ErrorSummary.Item>{errors.general}</ErrorSummary.Item>
-                )}
+                {errors.general && <ErrorSummary.Item>{errors.general}</ErrorSummary.Item>}
               </ErrorSummary.List>
             </ErrorSummary>
           )}
 
-          {state === "Login" && (
-            <Link className="cursor-pointer">Forgot Password?</Link>
-          )}
+          {state === "Login" && <Link className="cursor-pointer">Forgot Password?</Link>}
 
           <Paragraph>
-            {state === "Sign Up"
-              ? "Already have an Account? "
-              : "Create a new account? "}
+            {state === "Sign Up" ? "Already have an Account? " : "Create a new account? "}
             <Link
               className="cursor-pointer"
               onClick={() => {
@@ -270,11 +232,7 @@ const Auth: React.FC = () => {
         </div>
       </form>
 
-      <RegistrationDialogModal
-        isOpen={isModalOpen}
-        onClose={handleModalClose}
-        email={registrationEmail}
-      />
+      <RegistrationDialogModal isOpen={isModalOpen} onClose={handleModalClose} email={registrationEmail} />
     </>
   );
 };
