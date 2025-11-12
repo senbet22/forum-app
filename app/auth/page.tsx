@@ -73,7 +73,7 @@ const Auth: React.FC = () => {
         if (token) {
           login(token);
         }
-        toast("Welcome to Felles Forumet", "success", { duration: 6000 });
+        toast("Welcome to Felles Forumet", "success", 6500);
         router.push("/");
       }
     } catch (err: unknown) {
